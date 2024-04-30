@@ -1,20 +1,21 @@
 {
-  "name": "dapps-smartcontract-boilerplate",
+  "name": "nft-marketplace-smartcontract",
   "version": "1.0.0",
-  "description": "Dapps Smartcontract Boilerplate",
+  "description": "Birds of Space NFT Marketplace Smartcontract & Front End for Testing",
   "scripts": {
     "test": "hardhat test",
     "frontend": "yarn workspace frontend",
     "deploy": "npx hardhat run scripts/deploy.js --network truffle",
-    "truffle-dashboard": "truffle dashboard"
+    "truffle-dashboard": "truffle dashboard",
+    "flatten": "npx hardhat flatten contracts/NFTMarketplace.sol > contracts/NFTMarketplaceFlatten.sol"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/birdsofspace/dapps-smartcontract-boilerplate.git"
+    "url": "git+https://github.com/birdsofspace/nft-marketplace-smartcontract.git"
   },
   "author": "Nomic Foundation + Birds of Space",
   "license": "MIT",
-  "homepage": "https://github.com/birdsofspace/dapps-smartcontract-boilerplate#readme",
+  "homepage": "https://github.com/birdsofspace/nft-marketplace-smartcontract#readme",
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
@@ -40,6 +41,9 @@
     "frontend"
   ],
   "dependencies": {
-    "@truffle/dashboard-hardhat-plugin": "^0.2.15"
+    "@openzeppelin/contracts": "4.7.0",
+    "@openzeppelin/contracts-upgradeable": "4.7.0",
+    "@truffle/dashboard-hardhat-plugin": "^0.2.15",
+    "solidity-docgen": "^0.6.0-beta.36"
   }
 }
