@@ -6,11 +6,6 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-/**
- * @author  Birds of Space
- * @title   NFT Marketplace.
- * @dev     Buy and sell NFTs on the blockchain.
- */
 contract BirdsofSpaceMarketPlaceV1 is ReentrancyGuard, OwnableUpgradeable {
     using Counters for Counters.Counter;
     Counters.Counter private itemIds;
@@ -41,27 +36,14 @@ contract BirdsofSpaceMarketPlaceV1 is ReentrancyGuard, OwnableUpgradeable {
 
     event MarketItemSold(uint256 indexed itemId, address owner);
 
-    /**
-     * @dev     Disable initializer to avoid accidental usage.
-     */
     constructor() {
         _disableInitializers();
     }
 
-    /**
-     * @notice  .
-     * @dev     Initializes the contract.
-     */
     function initialize() initializer public {
          __Ownable_init();
     }
 
-    /**
-     * @dev     Creates a market item.
-     * @param   nftContract  Address of the NFT contract.
-     * @param   tokenId  Id of the NFT.
-     * @param   price  Price of the NFT.
-     */
     function createMarketItem(
         address nftContract,
         uint256 tokenId,
@@ -94,38 +76,29 @@ contract BirdsofSpaceMarketPlaceV1 is ReentrancyGuard, OwnableUpgradeable {
         );
     }
 
-    /**
-     * @dev     Creates a market sale of an NFT.
-     * @param   nftContract  Address of the NFT contract.
-     * @param   _itemId  ID of the NFT to be sold.
-     */
-    function createMarketSale(address nftContract, uint256 _itemId)
+    function createMarketSale(address nftContract, uint256 itemId)
         public
         payable
         nonReentrant
     {
-        uint256 price = idToMarketItem[_itemId].price;
-        uint256 tokenId = idToMarketItem[_itemId].tokenId;
-        bool sold = idToMarketItem[_itemId].sold;
+        uint256 price = idToMarketItem[itemId].price;
+        uint256 tokenId = idToMarketItem[itemId].tokenId;
+        bool sold = idToMarketItem[itemId].sold;
         uint256 priceTax = (price * 1) / 100;
         require(
             msg.value == price + priceTax,
             "Please submit the asking price in order to complete the purchase"
         );
         require(sold != true, "This Sale has alredy finnished");
-        emit MarketItemSold(_itemId, msg.sender);
+        emit MarketItemSold(itemId, msg.sender);
 
-        idToMarketItem[_itemId].seller.transfer(msg.value);
+        idToMarketItem[itemId].seller.transfer(msg.value);
         IERC721(nftContract).transferFrom(address(this), msg.sender, tokenId);
-        idToMarketItem[_itemId].owner = payable(msg.sender);
+        idToMarketItem[itemId].owner = payable(msg.sender);
         _itemsSold.increment();
-        idToMarketItem[_itemId].sold = true;
+        idToMarketItem[itemId].sold = true;
     }
 
-    /**
-     * @dev     Fetch all the market items that are not sold.
-     * @return  MarketItem[]  Should return an array of MarketItem structs.
-     */
     function fetchMarketItems() public view returns (MarketItem[] memory) {
         uint256 itemCount = itemIds.current();
         uint256 unsoldItemCount = itemIds.current() - _itemsSold.current();
@@ -143,14 +116,25 @@ contract BirdsofSpaceMarketPlaceV1 is ReentrancyGuard, OwnableUpgradeable {
         return items;
     }
 
-    /**
-     * @dev     Will payout the owner 95% of the contract balance.
-     */
     function withdraw() public payable onlyOwner {
         // This will payout the owner 95% of the contract balance.
         // Do not remove this otherwise you will not be able to withdraw the funds.
         // =============================================================================
         (bool os, ) = payable(owner()).call{value: address(this).balance}("");
         require(os);
+        // =============================================================================
+    }
+}
+
+contract BirdsofSpaceMarketPlaceV2 is BirdsofSpaceMarketPlaceV1 {
+    function cancelMarketItem(uint256 itemId) public nonReentrant {
+        require(msg.sender == idToMarketItem[itemId].seller, "You are not the seller of this item");
+        require(!idToMarketItem[itemId].sold, "This item has already been sold");
+
+        // Transfer NFT back to seller
+        IERC721(idToMarketItem[itemId].nftContract).transferFrom(address(this), idToMarketItem[itemId].seller, idToMarketItem[itemId].tokenId);
+
+        // Update market item status
+        delete idToMarketItem[itemId];
     }
 }
