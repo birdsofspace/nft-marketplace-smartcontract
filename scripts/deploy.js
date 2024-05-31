@@ -5,7 +5,7 @@ const path = require("path");
 
 async function main() {
 
-  const contractName = "BirdsofSpaceMarketPlaceV1";
+  const contractName = "BirdsofSpaceMarketPlaceV2";
   // This is just a convenience check
   if (network.name === "hardhat") {
     console.warn(
